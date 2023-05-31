@@ -17,5 +17,5 @@ func main(){
 	router.PUT("/post/:id", controllers.UpdatePost)
 	router.DELETE("/post/:id", controllers.DeletePost)
 
-	router.Run("localhost:5000")
+	router.Run(":5000")
 }

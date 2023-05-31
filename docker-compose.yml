@@ -1,0 +1,76 @@
+# services:
+#   app:
+#     depends_on:
+#       - mysql
+#     build:
+#       context: .
+#     container_name: server
+#     networks:
+#       - appnet
+#     ports:
+#       - 5000:5000
+#     environment:
+#       - MYSQL_USER=dev
+#       - MYSQL_PASS=dev1234
+#       - MYSQL_DB=posts
+#     deploy:
+#       restart_policy:
+#         condition: on-failure
+#   mysql:
+#     image: mysql:8.0
+#     container_name: mysql
+#     hostname: db
+#     environment:
+#       - MYSQL_ROOT_PASSWORD=secret
+#       - MYSQL_DATABASE=posts
+#       - MYSQL_USER=dev
+#       - MYSQL_PASSWORD=dev1234
+#     networks:
+#       - appnet
+#     ports:
+#       - 3306:3306
+#     volumes:
+#       - posts-mysql:/var/lib/mysql
+#       # - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+# volumes:
+#   posts-mysql:
+# networks:
+#   appnet:
+#     driver: bridge
+
+version: '3'
+services:
+  mysql:
+    image: mysql:8.0
+    restart: always
+    networks:
+      - appnet
+    environment:
+      MYSQL_ROOT_PASSWORD: secret
+      MYSQL_DATABASE: posts
+    ports:
+      - 3306:3306
+    volumes:
+      - posts-mysql:/var/lib/mysql
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      - mysql
+    deploy:
+      restart_policy:
+        condition: on-failure
+    ports:
+      - 5000:5000
+    environment:
+      MYSQL_DB: posts
+      MYSQL_USER: root
+      MYSQL_PASS: secret
+      MYSQL_HOST: host.docker.internal
+    command: bash -c "until nc -z mysql 3306; do sleep 1; done && ./main"
+volumes:
+  posts-mysql:
+networks:
+  appnet:
+    driver: bridge
